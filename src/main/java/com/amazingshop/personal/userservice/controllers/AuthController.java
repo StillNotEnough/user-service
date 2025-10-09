@@ -2,10 +2,13 @@ package com.amazingshop.personal.userservice.controllers;
 
 
 import com.amazingshop.personal.userservice.dto.requests.AuthenticationDTO;
+import com.amazingshop.personal.userservice.dto.requests.OAuth2LoginRequest;
 import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
+import com.amazingshop.personal.userservice.dto.responses.OAuth2UserInfo;
 import com.amazingshop.personal.userservice.models.Person;
 import com.amazingshop.personal.userservice.security.JwtUtil;
 import com.amazingshop.personal.userservice.services.ConverterService;
+import com.amazingshop.personal.userservice.services.OAuth2Service;
 import com.amazingshop.personal.userservice.services.RegistrationService;
 import com.amazingshop.personal.userservice.dto.responses.JwtResponse;
 import com.amazingshop.personal.userservice.util.validators.PersonValidator;
@@ -28,15 +31,18 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final ConverterService converterService;
     private final AuthenticationManager authenticationManager;
+    private final OAuth2Service oAuth2Service;
 
     @Autowired
     public AuthController(PersonValidator personValidator, RegistrationService registrationService,
-                          JwtUtil jwtUtil, ConverterService converterService, AuthenticationManager authenticationManager) {
+                          JwtUtil jwtUtil, ConverterService converterService, AuthenticationManager authenticationManager,
+                          OAuth2Service oAuth2Service) {
         this.personValidator = personValidator;
         this.registrationService = registrationService;
         this.jwtUtil = jwtUtil;
         this.converterService = converterService;
         this.authenticationManager = authenticationManager;
+        this.oAuth2Service = oAuth2Service;
     }
 
     /**
@@ -76,6 +82,34 @@ public class AuthController {
 
         log.info("User logged in successfully: {}", authenticationDTO.getUsername());
         return ResponseEntity.ok(new JwtResponse(token, expiresIn, authenticationDTO.getUsername()));
+    }
+
+    /**
+     * OAuth2 Login через Google
+     * POST /api/v1/auth/oauth2/google
+     */
+    @PostMapping("/oauth2/google")
+    public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody @Valid OAuth2LoginRequest request) {
+        log.info("Google OAuth2 login attempt");
+
+        try {
+            // Верифицируем Google ID Token
+            OAuth2UserInfo userInfo = oAuth2Service.verifyGoogleToken(request.getIdToken());
+
+            // Находим или создаем пользователя
+            Person person = oAuth2Service.findOrCreateOAuth2User(userInfo);
+
+            // Генерируем JWT токен
+            String token = jwtUtil.generateToken(person.getUsername());
+            long expiresIn = jwtUtil.getExpirationTime();
+
+            log.info("Google OAuth2 login successful for: {}", person.getUsername());
+            return ResponseEntity.ok(new JwtResponse(token, expiresIn, person.getUsername()));
+
+        } catch (Exception e) {
+            log.error("Google OAuth2 login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
     /**
