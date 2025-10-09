@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,10 +44,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .userDetailsService(peopleDetailService)
+                .oauth2Login(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (Публичные эндпоинты)
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/health", "/api/v1/auth/health").permitAll()
+
+                        // OAuth2 endpoints (публичные)
+                        .requestMatchers("/api/v1/auth/oauth2/**").permitAll()
 
                         // Admin endpoints (Админские эндпоинты)
                         .requestMatchers("/api/v1/users/admin/**").hasRole(Role.ADMIN.toString())
