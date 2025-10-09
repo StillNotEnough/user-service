@@ -17,6 +17,8 @@ public interface PeopleRepository extends JpaRepository<Person, Long> {
     Optional<Person> findPersonByEmail(@NotEmpty(message = "Email should be not empty") @Email(
                                                message = "Email should be valid") String email);
 
+    Optional<Person> findByOauthProviderAndOauthId(String provider, String oauthId);
+
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 }
