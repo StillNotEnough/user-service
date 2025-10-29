@@ -57,7 +57,9 @@ server:
   # JWT configuration
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION}
+  expiration:
+    access: 60000 #${JWT_ACCESS_EXPIRATION}
+    refresh: 300000 #${JWT_REFRESH_EXPIRATION}
 
 # Logging configuration
 logging:

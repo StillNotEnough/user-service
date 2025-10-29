@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Component
@@ -21,50 +24,111 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    // Access token - короткий (15-30 минут)
+    @Value("${jwt.access-token-expiration:1800000}") // по умолчанию 30 минут
+    private long accessTokenExpiration;
 
-    @Value("${jwt.issuer:AmazingShop}")
-    private String issuer;
+    // Refresh token - длинный (2 недели)
+    @Value("${jwt.refresh-token-expiration:1209600000}") // по умолчанию 14 дней
+    private long refreshTokenExpiration;
 
-    public String generateToken(String username){
+
+    /**
+     * Генерация Access Token
+     */
+    public String generateAccessToken(String username){
         log.debug("Generating JWT token for user: {}", username);
+        Date expirationDate = Date.from(ZonedDateTime.now()
+                .plusSeconds(accessTokenExpiration / 1000)
+                .toInstant());
+
         return JWT.create()
                 .withSubject("User details")
                 .withClaim("username", username)
+                .withClaim("type", "access")
                 .withIssuedAt(new Date())
-                .withIssuer(issuer)
-                .withExpiresAt(Date.from(ZonedDateTime.now().plusSeconds(expiration).toInstant()))
+                .withIssuer("NoNameAI")
+                .withExpiresAt(expirationDate)
                 .sign(Algorithm.HMAC256(secret));
     }
 
-    public String validateTokenAndRetrieveClaim(String token) throws JWTVerificationException {
+    /**
+     * Генерация Refresh Token
+     */
+    public String generateRefreshToken(String username) {
+        Date expirationDate = Date.from(ZonedDateTime.now()
+                .plusSeconds(refreshTokenExpiration / 1000)
+                .toInstant());
+
+        return JWT.create()
+                .withSubject("User details")
+                .withClaim("username", username)
+                .withClaim("type", "refresh")
+                .withClaim("jti", UUID.randomUUID().toString()) // Уникальный ID
+                .withIssuedAt(new Date())
+                .withIssuer("NoNameAI")
+                .withExpiresAt(expirationDate)
+                .sign(Algorithm.HMAC256(secret));
+    }
+
+    /**
+     * Валидация токена и извлечение username
+     */
+    public String validateTokenAndRetrieveClaim(String token) {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                     .withSubject("User details")
-                    .withIssuer(issuer)
+                    .withIssuer("NoNameAI")
                     .build();
+
             DecodedJWT jwt = verifier.verify(token);
             String username = jwt.getClaim("username").asString();
-            log.debug("Successfully validated token for user: {}", username);
+            log.debug("✅ Valid JWT for user: {}", username);
             return username;
+
+        } catch (TokenExpiredException e) {
+            log.warn("⚠️ Token expired: {}", e.getMessage());
+            throw e;
+        } catch (SignatureVerificationException e) {
+            log.error("❌ Invalid signature: {}", e.getMessage());
+            throw e;
         } catch (JWTVerificationException e) {
-            log.warn("JWT token validation failed: {}", e.getMessage());
+            log.warn("JWT verification failed: {}", e.getMessage());
             throw e;
         }
     }
 
+    /**
+     * Проверка типа токена
+     */
+    public String getTokenType(String token) {
+        DecodedJWT jwt = JWT.decode(token);
+        return jwt.getClaim("type").asString();
+    }
+
+    /**
+     * Получить время истечения access token в секундах
+     */
+    public long getAccessTokenExpiration() {
+        return accessTokenExpiration / 1000;
+    }
+
+    /**
+     * Получить время истечения refresh token в секундах
+     */
+    public long getRefreshTokenExpiration() {
+        return refreshTokenExpiration / 1000;
+    }
+
+    /**
+     * Проверка истек ли токен
+     */
     public boolean isTokenExpired(String token) {
         try {
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getExpiresAt().before(new Date());
         } catch (Exception e) {
-            log.warn("Error checking token expiration: {}", e.getMessage());
             return true;
         }
-    }
-
-    public long getExpirationTime() {
-        return expiration;
     }
 }

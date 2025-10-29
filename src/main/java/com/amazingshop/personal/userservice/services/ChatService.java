@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,11 +18,13 @@ public class ChatService {
 
     private final ChatRepository chatRepository;
     private final ChatMessageRepository messageRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    public ChatService(ChatRepository chatRepository, ChatMessageRepository messageRepository) {
+    public ChatService(ChatRepository chatRepository, ChatMessageRepository messageRepository, ChatMessageRepository chatMessageRepository) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
     public List<Chat> getUserChats(Long userId, String search, String subject) {
@@ -86,21 +89,18 @@ public class ChatService {
             throw new RuntimeException("Unauthorized");
         }
 
-        // Auto-generate title from first user message
-        if (chat.getTitle().equals("New Chat") && "user".equals(role)) {
-            chat.setTitle(truncateTitle(content));
-            chatRepository.save(chat);
-        }
-
-        // Update chat timestamp
-        chat.setUpdatedAt(java.time.LocalDateTime.now());
-        chatRepository.save(chat);
-
         ChatMessage message = new ChatMessage();
         message.setChatId(chatId);
         message.setContent(content);
         message.setRole(role);
         message.setTemplateUsed(templateUsed);
+        message.setCreatedAt(LocalDateTime.now());
+
+        chatMessageRepository.save(message);
+
+        // Update chat timestamp
+        chat.setUpdatedAt(LocalDateTime.now());
+        chatRepository.save(chat);
 
         return messageRepository.save(message);
     }

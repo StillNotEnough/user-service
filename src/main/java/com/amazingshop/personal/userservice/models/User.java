@@ -53,6 +53,12 @@ public class User {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
+    @Column(name = "refresh_token", length = 500)
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expiry")
+    private LocalDateTime refreshTokenExpiry;
+
     // Автоматически устанавливаем createdAt и роль по умолчанию
     @PrePersist
     public void prePersist() {
