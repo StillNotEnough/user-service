@@ -9,4 +9,9 @@ import java.util.List;
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
     List<ChatMessage> findByChatIdOrderByCreatedAtAsc(Long chatId);
+
+    long countByChatIdAndRole(Long chatId, String role);
+
+    // Дополнительно: удаление всех сообщений чата (если нужно для каскадного удаления)
+    void deleteByChatId(Long chatId);
 }

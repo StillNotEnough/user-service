@@ -80,4 +80,14 @@ public class ChatController {
         );
         return ResponseEntity.ok(message);
     }
+
+    // Получить последние чаты для sidebar
+    @GetMapping("/recent")
+    public ResponseEntity<List<Chat>> getRecentChats(
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        Long userId = getCurrentUserId();
+        List<Chat> chats = chatService.getRecentChats(userId, limit);
+        return ResponseEntity.ok(chats);
+    }
 }

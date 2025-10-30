@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -89,6 +90,9 @@ public class ChatService {
             throw new RuntimeException("Unauthorized");
         }
 
+        // ✨ НОВОЕ: Проверяем, является ли это первым сообщением пользователя
+        boolean isFirstUserMessage = messageRepository.countByChatIdAndRole(chatId, "user") == 0;
+
         ChatMessage message = new ChatMessage();
         message.setChatId(chatId);
         message.setContent(content);
@@ -97,6 +101,13 @@ public class ChatService {
         message.setCreatedAt(LocalDateTime.now());
 
         chatMessageRepository.save(message);
+
+        // ✨ НОВОЕ: Если это первое сообщение пользователя, обновляем title чата
+        if (isFirstUserMessage && "user".equals(role) && content != null && !content.trim().isEmpty()) {
+            String newTitle = truncateTitle(content);
+            chat.setTitle(newTitle);
+            log.info("📝 Auto-generated chat title from first message: {}", newTitle);
+        }
 
         // Update chat timestamp
         chat.setUpdatedAt(LocalDateTime.now());
@@ -116,5 +127,13 @@ public class ChatService {
         }
 
         return title.length() > 0 ? title.toString() : "New Chat";
+    }
+
+    // Получить последние N чатов
+    public List<Chat> getRecentChats(Long userId, int limit) {
+        List<Chat> allChats = chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        return allChats.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 }
