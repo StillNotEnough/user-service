@@ -2,6 +2,7 @@ package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.requests.AddMessageRequest;
 import com.amazingshop.personal.userservice.dto.requests.CreateChatRequest;
+import com.amazingshop.personal.userservice.dto.requests.UpdateChatTitleRequest;
 import com.amazingshop.personal.userservice.models.Chat;
 import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
@@ -89,5 +90,21 @@ public class ChatController {
         Long userId = getCurrentUserId();
         List<Chat> chats = chatService.getRecentChats(userId, limit);
         return ResponseEntity.ok(chats);
+    }
+
+    @PutMapping("/{chatId}/title")
+    public ResponseEntity<Chat> updateChatTitle(
+            @PathVariable Long chatId,
+            @RequestBody UpdateChatTitleRequest request) {
+        Long userId = getCurrentUserId();
+        Chat updatedChat = chatService.updateChatTitle(chatId, userId, request.getNewTitle());
+        return ResponseEntity.ok(updatedChat);
+    }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllChats() {
+        Long userId = getCurrentUserId();
+        chatService.deleteAllChats(userId);
+        return ResponseEntity.noContent().build();
     }
 }

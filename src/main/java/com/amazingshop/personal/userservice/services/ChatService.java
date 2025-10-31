@@ -136,4 +136,23 @@ public class ChatService {
                 .limit(limit)
                 .collect(Collectors.toList());
     }
+
+    public Chat updateChatTitle(Long chatId, Long userId, String newTitle) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        if (!chat.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        chat.setTitle(newTitle);
+        chat.setUpdatedAt(LocalDateTime.now());
+
+        return chatRepository.save(chat);
+    }
+
+    public void deleteAllChats(Long userId) {
+        List<Chat> userChats = chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+        chatRepository.deleteAll(userChats);
+    }
 }
