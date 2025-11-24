@@ -26,7 +26,6 @@ public class CurrentUserResponse {
     private String oauthProvider;
     private LocalDateTime createdAt;
 
-    // ✨ Для будущих подписок
     private String subscriptionPlan;  // "FREE", "PRO", "ENTERPRISE"
     private LocalDateTime subscriptionExpiresAt;
 }

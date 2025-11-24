@@ -8,6 +8,7 @@ import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.services.ChatService;
 import com.amazingshop.personal.userservice.services.UserService;
+import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/chats")
-@Slf4j
 public class ChatController {
 
     private final ChatService chatService;
@@ -35,7 +36,7 @@ public class ChatController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         return userService.findPersonByPersonName(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"))
+                .orElseThrow(() -> new UserNotFoundException("User not found!"))
                 .getId();
     }
 

@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UsersController {
 
     private final AdminService adminService;
@@ -37,7 +37,7 @@ public class UsersController {
     }
 
     /**
-     * ✨ ОБНОВЛЕНО: Получение информации о текущем пользователе
+     * Получение информации о текущем пользователе
      * GET /api/v1/users/me
      *
      * Возвращает актуальные данные пользователя из БД
@@ -60,7 +60,7 @@ public class UsersController {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .oauthProvider(user.getOauthProvider())
                 .createdAt(user.getCreatedAt())
-                // ✨ Пока всем FREE, потом добавите логику подписок
+                //Пока всем FREE
                 .subscriptionPlan("FREE")
                 .subscriptionExpiresAt(null)
                 .build();
@@ -70,7 +70,7 @@ public class UsersController {
     }
 
     /**
-     * ✨ ОБНОВЛЕНО: Обновление информации о текущем пользователе
+     * Обновление информации о текущем пользователе
      * PUT /api/v1/users/me
      *
      * Позволяет обновить email и profile picture

@@ -12,7 +12,6 @@ public class UserServiceApplication {
 		SpringApplication.run(UserServiceApplication.class, args);
 	}
 
-	// Bean for using modelMapper
 	@Bean
 	public ModelMapper modelMapper() {
 		return new ModelMapper();

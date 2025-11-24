@@ -1,7 +1,5 @@
 package com.amazingshop.personal.userservice.dto.requests;
 
-// СОЗДАЙ новый файл: dto/requests/RefreshTokenRequest.java
-
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
