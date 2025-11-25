@@ -7,9 +7,9 @@ import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.TokenPairResponse;
 import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.security.jwt.JwtUtil;
-import com.amazingshop.personal.userservice.services.ConverterService;
-import com.amazingshop.personal.userservice.services.RegistrationService;
-import com.amazingshop.personal.userservice.services.UserService;
+import com.amazingshop.personal.userservice.interfaces.ConverterService;
+import com.amazingshop.personal.userservice.interfaces.RegistrationService;
+import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
-@Slf4j
 public class AuthController {
 
     private final UserValidator userValidator;

@@ -1,5 +1,6 @@
 package com.amazingshop.personal.userservice.services;
 
+import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Service
 @Slf4j
+@Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserService userService;

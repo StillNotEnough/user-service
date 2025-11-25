@@ -1,25 +1,29 @@
 package com.amazingshop.personal.userservice.services;
 
 import com.amazingshop.personal.userservice.enums.Role;
+import com.amazingshop.personal.userservice.interfaces.RegistrationService;
+import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
-@Slf4j
-public class RegistrationService {
+public class RegistrationServiceImpl implements RegistrationService {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final UserValidator userValidator;
 
-    public RegistrationService(PasswordEncoder passwordEncoder,
+    @Autowired
+    public RegistrationServiceImpl(PasswordEncoder passwordEncoder,
                                UserService userService, UserValidator userValidator) {
         this.userService = userService;
         this.userValidator = userValidator;

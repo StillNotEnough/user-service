@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class RegistrationServiceTest {
 
     @Mock
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -29,7 +29,7 @@ public class RegistrationServiceTest {
     private UserValidator userValidator;
 
     @InjectMocks
-    private RegistrationService registrationService;
+    private RegistrationServiceImpl registrationService;
 
     private User testUser;
 

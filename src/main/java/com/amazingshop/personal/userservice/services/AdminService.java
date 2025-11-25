@@ -1,6 +1,7 @@
 package com.amazingshop.personal.userservice.services;
 
 import com.amazingshop.personal.userservice.enums.Role;
+import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +15,7 @@ public class AdminService {
 
     private final UserService userService;
 
-    public AdminService(UserService userService) {
+    public AdminService(UserServiceImpl userService) {
         this.userService = userService;
     }
 

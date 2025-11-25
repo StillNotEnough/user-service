@@ -1,5 +1,6 @@
 package com.amazingshop.personal.userservice.services;
 
+import com.amazingshop.personal.userservice.interfaces.ChatService;
 import com.amazingshop.personal.userservice.models.Chat;
 import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.repositories.ChatRepository;
@@ -13,21 +14,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
-public class ChatService {
+@Service
+public class ChatServiceImpl implements ChatService {
 
     private final ChatRepository chatRepository;
     private final ChatMessageRepository messageRepository;
     private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    public ChatService(ChatRepository chatRepository, ChatMessageRepository messageRepository, ChatMessageRepository chatMessageRepository) {
+    public ChatServiceImpl(ChatRepository chatRepository, ChatMessageRepository messageRepository, ChatMessageRepository chatMessageRepository) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.chatMessageRepository = chatMessageRepository;
     }
 
+    @Override
     public List<Chat> getUserChats(Long userId, String search, String subject) {
         if (search != null && !search.trim().isEmpty()) {
             return chatRepository.findByUserIdAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(userId, search);
@@ -38,6 +40,7 @@ public class ChatService {
         return chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
     }
 
+    @Override
     @Transactional
     public Chat createChat(Long userId, String title, String subject) {
         Chat chat = new Chat();
@@ -47,6 +50,7 @@ public class ChatService {
         return chatRepository.save(chat);
     }
 
+    @Override
     @Transactional
     public void deleteChat(Long chatId, Long userId) {
         Chat chat = chatRepository.findById(chatId)
@@ -60,6 +64,7 @@ public class ChatService {
     }
 
 
+    @Override
     public List<ChatMessage> getChatMessages(Long chatId, Long userId) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
@@ -71,6 +76,7 @@ public class ChatService {
         return messageRepository.findByChatIdOrderByCreatedAtAsc(chatId);
     }
 
+    @Override
     @Transactional
     public ChatMessage addMessage(Long chatId, Long userId, String content, String role, String templateUsed) {
         Chat chat = chatRepository.findById(chatId)
@@ -119,6 +125,7 @@ public class ChatService {
         return title.length() > 0 ? title.toString() : "New Chat";
     }
 
+    @Override
     // Получить последние N чатов
     public List<Chat> getRecentChats(Long userId, int limit) {
         List<Chat> allChats = chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
@@ -127,6 +134,7 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public Chat updateChatTitle(Long chatId, Long userId, String newTitle) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
@@ -141,6 +149,7 @@ public class ChatService {
         return chatRepository.save(chat);
     }
 
+    @Override
     public void deleteAllChats(Long userId) {
         List<Chat> userChats = chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
         chatRepository.deleteAll(userChats);

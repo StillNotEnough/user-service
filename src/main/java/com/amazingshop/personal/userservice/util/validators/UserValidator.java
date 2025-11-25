@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.util.validators;
 
 import com.amazingshop.personal.userservice.models.User;
-import com.amazingshop.personal.userservice.services.UserService;
+import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.util.exceptions.UserValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
