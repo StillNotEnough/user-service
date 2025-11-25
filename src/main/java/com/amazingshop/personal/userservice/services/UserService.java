@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public Optional<User> findByUsername(String username) {
-        log.debug("Searching for person by username: {}", username);
+        log.debug("Searching for user by username: {}", username);
         return usersRepository.findByUsername(username);
     }
 
@@ -44,15 +44,15 @@ public class UserService {
 
     @Transactional
     public User save(User user) {
-        log.debug("Saving person: {}", user.getUsername());
+        log.debug("Saving user: {}", user.getUsername());
         return usersRepository.save(user);
     }
 
     @Transactional
     public void deleteById(Long id) {
-        log.info("Deleting person with id: {}", id);
+        log.info("Deleting user with id: {}", id);
         if (!usersRepository.existsById(id)) {
-            throw new UserNotFoundException("Person with id " + id + " not found");
+            throw new UserNotFoundException("User with id " + id + " not found");
         }
         usersRepository.deleteById(id);
     }

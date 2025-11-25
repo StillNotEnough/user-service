@@ -116,9 +116,9 @@ public class GlobalExceptionHandler {
     /// ////////////////////////////////////////////////
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerPersonNotFoundException(UserNotFoundException e) {
-        log.warn("Person not found: {}", e.getMessage());
-        return new ResponseEntity<>(ErrorResponse.makeErrorResponse("Person not found"),
+    public ResponseEntity<ErrorResponse> handlerUserNotFoundException(UserNotFoundException e) {
+        log.warn("User not found: {}", e.getMessage());
+        return new ResponseEntity<>(ErrorResponse.makeErrorResponse("User not found"),
                 HttpStatus.NOT_FOUND);
     }
 

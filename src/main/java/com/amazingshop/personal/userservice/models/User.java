@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "Person")
+@Table(name = "Users")
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -40,12 +40,9 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "role")
-    @Enumerated
     private Role role;
-
-    @Column(name = "oauth_id")
-    private String oauthId; // ID пользователя от провайдера
 
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;

@@ -45,7 +45,7 @@ public class JwtUtil {
                 .withClaim("username", username)
                 .withClaim("type", "access")
                 .withIssuedAt(new Date())
-                .withIssuer("NoNameAI")
+                .withIssuer("ShporaAi")
                 .withExpiresAt(expirationDate)
                 .sign(Algorithm.HMAC256(secret));
     }
@@ -64,7 +64,7 @@ public class JwtUtil {
                 .withClaim("type", "refresh")
                 .withClaim("jti", UUID.randomUUID().toString()) // Уникальный ID
                 .withIssuedAt(new Date())
-                .withIssuer("NoNameAI")
+                .withIssuer("ShporaAi")
                 .withExpiresAt(expirationDate)
                 .sign(Algorithm.HMAC256(secret));
     }
@@ -76,7 +76,7 @@ public class JwtUtil {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                     .withSubject("User details")
-                    .withIssuer("NoNameAI")
+                    .withIssuer("ShporaAi")
                     .build();
 
             DecodedJWT jwt = verifier.verify(token);
