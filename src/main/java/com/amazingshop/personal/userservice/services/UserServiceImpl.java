@@ -3,9 +3,12 @@ package com.amazingshop.personal.userservice.services;
 import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.repositories.UsersRepository;
+import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,5 +65,14 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("User with id " + id + " not found");
         }
         usersRepository.deleteById(id);
+    }
+
+    @Override
+    public Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        return findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not found!"))
+                .getId();
     }
 }

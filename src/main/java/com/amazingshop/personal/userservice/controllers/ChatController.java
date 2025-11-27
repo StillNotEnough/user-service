@@ -3,17 +3,13 @@ package com.amazingshop.personal.userservice.controllers;
 import com.amazingshop.personal.userservice.dto.requests.AddMessageRequest;
 import com.amazingshop.personal.userservice.dto.requests.CreateChatRequest;
 import com.amazingshop.personal.userservice.dto.requests.UpdateChatTitleRequest;
-import com.amazingshop.personal.userservice.models.Chat;
-import com.amazingshop.personal.userservice.models.ChatMessage;
-import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.interfaces.ChatService;
 import com.amazingshop.personal.userservice.interfaces.UserService;
-import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
+import com.amazingshop.personal.userservice.models.Chat;
+import com.amazingshop.personal.userservice.models.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,53 +28,40 @@ public class ChatController {
         this.userService = userService;
     }
 
-    private Long getCurrentUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        return userService.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new UserNotFoundException("User not found!"))
-                .getId();
-    }
 
     @GetMapping
     public ResponseEntity<List<Chat>> getChats(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String subject
     ) {
-        Long userId = getCurrentUserId();
-        List<Chat> chats = chatService.getUserChats(userId, search, subject);
+        List<Chat> chats = chatService.getUserChats(userService.getCurrentUserId(), search, subject);
         return ResponseEntity.ok(chats);
     }
 
     @PostMapping
     public ResponseEntity<Chat> createChat(@RequestBody CreateChatRequest request) {
-        Long userId = getCurrentUserId();
-        Chat chat = chatService.createChat(userId, request.getTitle(), request.getSubject());
+        Chat chat = chatService.createChat(userService.getCurrentUserId(), request.getTitle(), request.getSubject());
         return ResponseEntity.ok(chat);
     }
 
     @DeleteMapping("/{chatId}")
     public ResponseEntity<Void> deleteChat(@PathVariable Long chatId) {
-        Long userId = getCurrentUserId();
-        chatService.deleteChat(chatId, userId);
+        chatService.deleteChat(chatId, userService.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{chatId}/messages")
     public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable Long chatId) {
-        Long userId = getCurrentUserId();
-        List<ChatMessage> messages = chatService.getChatMessages(chatId, userId);
+        List<ChatMessage> messages = chatService.getChatMessages(chatId, userService.getCurrentUserId());
         return ResponseEntity.ok(messages);
     }
 
     @PostMapping("/{chatId}/messages")
-    public ResponseEntity<ChatMessage> addMessage(
-            @PathVariable Long chatId,
-            @RequestBody AddMessageRequest request
+    public ResponseEntity<ChatMessage> addMessage(@PathVariable Long chatId,
+                                                  @RequestBody AddMessageRequest request
     ) {
-        Long userId = getCurrentUserId();
         ChatMessage message = chatService.addMessage(
-                chatId, userId, request.getContent(), request.getRole(), request.getTemplateUsed()
+                chatId, userService.getCurrentUserId(), request.getContent(), request.getRole(), request.getTemplateUsed()
         );
         return ResponseEntity.ok(message);
     }
@@ -88,8 +71,7 @@ public class ChatController {
     public ResponseEntity<List<Chat>> getRecentChats(
             @RequestParam(defaultValue = "20") int limit
     ) {
-        Long userId = getCurrentUserId();
-        List<Chat> chats = chatService.getRecentChats(userId, limit);
+        List<Chat> chats = chatService.getRecentChats(userService.getCurrentUserId(), limit);
         return ResponseEntity.ok(chats);
     }
 
@@ -97,15 +79,13 @@ public class ChatController {
     public ResponseEntity<Chat> updateChatTitle(
             @PathVariable Long chatId,
             @RequestBody UpdateChatTitleRequest request) {
-        Long userId = getCurrentUserId();
-        Chat updatedChat = chatService.updateChatTitle(chatId, userId, request.getNewTitle());
+        Chat updatedChat = chatService.updateChatTitle(chatId, userService.getCurrentUserId(), request.getNewTitle());
         return ResponseEntity.ok(updatedChat);
     }
 
     @DeleteMapping("/all")
     public ResponseEntity<Void> deleteAllChats() {
-        Long userId = getCurrentUserId();
-        chatService.deleteAllChats(userId);
+        chatService.deleteAllChats(userService.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 }
