@@ -5,6 +5,7 @@ import com.amazingshop.personal.userservice.models.Chat;
 import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.repositories.ChatRepository;
 import com.amazingshop.personal.userservice.repositories.ChatMessageRepository;
+import com.amazingshop.personal.userservice.util.exceptions.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
         if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You are not authorized to delete this chat");
         }
 
         chatRepository.deleteById(chatId);
@@ -70,7 +71,7 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
         if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You are not authorized to delete this chat");
         }
 
         return messageRepository.findByChatIdOrderByCreatedAtAsc(chatId);
@@ -83,7 +84,7 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
         if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You are not authorized to delete this chat");
         }
 
         // Проверяем, является ли это первым сообщением пользователя
@@ -102,7 +103,7 @@ public class ChatServiceImpl implements ChatService {
         if (isFirstUserMessage && "user".equals(role) && content != null && !content.trim().isEmpty()) {
             String newTitle = truncateTitle(content);
             chat.setTitle(newTitle);
-            log.info("📝 Auto-generated chat title from first message: {}", newTitle);
+            log.info("Auto-generated chat title from first message: {}", newTitle);
         }
 
         // Update chat timestamp
@@ -140,7 +141,7 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new RuntimeException("Chat not found"));
 
         if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You are not authorized to delete this chat");
         }
 
         chat.setTitle(newTitle);
