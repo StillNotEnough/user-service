@@ -2,6 +2,7 @@ package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.responses.ErrorResponse;
 import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
+import com.amazingshop.personal.userservice.util.exceptions.UserValidationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -55,6 +56,15 @@ public class GlobalExceptionHandler {
 
 
         return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler(UserValidationException.class)
+    public ResponseEntity<ErrorResponse> handleUserValidationException(UserValidationException e) {
+        log.warn("User validation failed: {}", e.getMessage());
+        return new ResponseEntity<>(
+                ErrorResponse.makeErrorResponse(e.getMessage()),
+                HttpStatus.BAD_REQUEST  // ← 400 вместо 500
+        );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
