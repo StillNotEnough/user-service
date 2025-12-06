@@ -1,6 +1,7 @@
 package com.amazingshop.personal.userservice.config;
 
 import com.amazingshop.personal.userservice.enums.Role;
+import com.amazingshop.personal.userservice.security.jwt.JwtAuthenticationEntryPoint;
 import com.amazingshop.personal.userservice.security.jwt.JwtFilter;
 import com.amazingshop.personal.userservice.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +31,13 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtFilter jwtFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtFilter jwtFilter) {
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtFilter jwtFilter, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -43,6 +46,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .userDetailsService(userDetailsService)
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (Публичные эндпоинты)
                         .requestMatchers("/api/v1/auth/**").permitAll()
