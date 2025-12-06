@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+jwt:
+  secret: test-secret-key-for-jwt-testing-minimum-256-bits-12345678901234567890
+  access-token-expiration: 900000    # 15 минут для тестов
+  refresh-token-expiration: 604800000 # 7 дней для тестов
+
+logging:
+  level:
+    root: WARN
+    com.amazingshop: INFO
