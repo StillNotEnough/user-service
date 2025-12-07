@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class ChatControllerIntegrationTest {
+class ChatControllerIT {
 
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
@@ -40,7 +40,7 @@ class ChatControllerIntegrationTest {
     private User testUser;
 
     @Autowired
-    ChatControllerIntegrationTest(MockMvc mockMvc, ObjectMapper objectMapper, JwtUtil jwtUtil, UsersRepository usersRepository, ChatRepository chatRepository) {
+    ChatControllerIT(MockMvc mockMvc, ObjectMapper objectMapper, JwtUtil jwtUtil, UsersRepository usersRepository, ChatRepository chatRepository) {
         this.mockMvc = mockMvc;
         this.objectMapper = objectMapper;
         this.jwtUtil = jwtUtil;

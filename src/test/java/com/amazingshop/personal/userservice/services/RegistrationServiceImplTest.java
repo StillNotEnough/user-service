@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-public class RegistrationServiceTest {
+public class RegistrationServiceImplTest {
 
     @Mock
     private UserServiceImpl userService;
