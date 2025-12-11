@@ -93,8 +93,10 @@ public class SecurityConfig {
     public CorsConfigurationSource configurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173", //frontend-service
-                "http://localhost:8000" // ai-service
+                "http://localhost:5173",     // frontend dev
+                "http://localhost:80",       // frontend docker
+                "http://localhost",          // frontend docker
+                "http://localhost:8000"      // ai-service
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
