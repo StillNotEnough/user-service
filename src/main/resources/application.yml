@@ -3,6 +3,12 @@ spring:
   application:
     name: user-service
 
+  # Flyway configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true  # Если БД уже существует
+    locations: classpath:db/migration
+
   # Database configuration
   datasource:
     driver-class-name: org.postgresql.Driver
