@@ -3,8 +3,14 @@ name: user-service CI + Publish (GHCR)
 on:
   pull_request:
     branches: ["master"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   push:
     branches: ["master"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
@@ -14,31 +20,41 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
           cache: maven
+
       - name: Run tests
         run: mvn -B test
 
+      - name: Build (skip tests)
+        run: mvn -B -DskipTests package
+
   publish_image:
     needs: test
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -47,6 +63,7 @@ jobs:
           tags: |
             type=sha,format=short,prefix=sha-
             type=ref,event=branch
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
