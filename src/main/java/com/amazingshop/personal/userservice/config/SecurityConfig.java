@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (Публичные эндпоинты)
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/users/health", "/api/v1/auth/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 
                         // Admin endpoints (Админские эндпоинты)
                         .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.toString())
