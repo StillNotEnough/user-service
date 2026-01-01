@@ -99,13 +99,4 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
-
-    /**
-     * Проверка работоспособности сервиса
-     * GET /api/v1/auth/health
-     */
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Auth service is running");
-    }
 }
