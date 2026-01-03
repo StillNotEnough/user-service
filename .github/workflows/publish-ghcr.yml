@@ -42,6 +42,11 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
+    outputs:
+      short_sha: ${{ steps.vars.outputs.short_sha }}
+      image: ${{ steps.vars.outputs.image }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -74,3 +79,72 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Compute outputs (image + short sha)
+        id: vars
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::7}"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/user-service:sha-${SHORT_SHA}"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+  gitops_orchestrator_pr:
+    needs: publish_image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: StillNotEnough/shpora-ai-orchestrator-prod
+          token: ${{ secrets.ORCHESTRATOR_TOKEN }}
+          path: orchestrator
+          ref: main
+
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Update user-service image in deployment
+        env:
+          FILE_PATH: orchestrator/k8s/base/user-service/deployment.yaml
+          IMAGE: ${{ needs.publish_image.outputs.image }}
+        run: |
+          set -euo pipefail
+          test -f "${FILE_PATH}"
+
+          yq -i '(.spec.template.spec.containers[] | select(.name=="user-service") | .image) = strenv(IMAGE)' "${FILE_PATH}"
+
+          echo "Updated image to:"
+          yq '.spec.template.spec.containers[] | select(.name=="user-service") | .image' "${FILE_PATH}"
+
+      - name: Create PR to GitOps repo
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.ORCHESTRATOR_TOKEN }}
+          path: orchestrator
+          branch: bump/user-service-${{ needs.publish_image.outputs.short_sha }}
+          base: main
+          commit-message: "chore(user-service): bump image to sha-${{ needs.publish_image.outputs.short_sha }}"
+          title: "chore(user-service): bump image to sha-${{ needs.publish_image.outputs.short_sha }}"
+          body: |
+            Automated PR from user-service CI.
+            Image: ${{ needs.publish_image.outputs.image }}
+          labels: automated, user-service
+
+      - name: Enable auto-merge for PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.ORCHESTRATOR_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --repo StillNotEnough/shpora-ai-orchestrator-prod \
+            --squash --auto
