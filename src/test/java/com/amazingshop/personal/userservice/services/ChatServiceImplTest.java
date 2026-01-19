@@ -1,9 +1,15 @@
 package com.amazingshop.personal.userservice.services;
 
+import com.amazingshop.personal.userservice.dto.responses.ChatMessageResponse;
+import com.amazingshop.personal.userservice.dto.responses.ChatMessagesListResponse;
+import com.amazingshop.personal.userservice.dto.responses.ChatResponse;
+import com.amazingshop.personal.userservice.dto.responses.ChatsListResponse;
+import com.amazingshop.personal.userservice.interfaces.EntityMapper;
 import com.amazingshop.personal.userservice.models.Chat;
 import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.repositories.ChatMessageRepository;
 import com.amazingshop.personal.userservice.repositories.ChatRepository;
+import com.amazingshop.personal.userservice.util.exceptions.ChatNotFoundException;
 import com.amazingshop.personal.userservice.util.exceptions.UnauthorizedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +30,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ChatServiceImplTest {
+
+    @Mock
+    private EntityMapper entityMapper;
 
     @Mock
     private ChatRepository chatRepository;
@@ -102,12 +111,24 @@ public class ChatServiceImplTest {
         );
         when(chatRepository.findByUserIdOrderByUpdatedAtDesc(USER_ID)).thenReturn(mockChats);
 
+        // Mock маппера
+        List<ChatResponse> mockResponses = List.of(
+                ChatResponse.builder().id(1L).title("Chat 1").build(),
+                ChatResponse.builder().id(2L).title("Chat 2").build()
+        );
+        when(entityMapper.toChatResponseList(mockChats)).thenReturn(mockResponses);
+
         // Act
-        List<Chat> result = chatService.getUserChats(USER_ID, null, null);
+        ChatsListResponse result = chatService.getUserChats(USER_ID, null, null);
 
         // Assert
-        assertEquals(2, result.size());
+        assertNotNull(result);
+        assertEquals(2, result.getChats().size());
+        assertEquals("Chat 1", result.getChats().get(0).getTitle());
+        assertEquals("Chat 2", result.getChats().get(1).getTitle());
+
         verify(chatRepository, times(1)).findByUserIdOrderByUpdatedAtDesc(USER_ID);
+        verify(entityMapper, times(1)).toChatResponseList(mockChats);
     }
 
     @Test
@@ -116,16 +137,25 @@ public class ChatServiceImplTest {
         // Arrange
         String search = "test";
         List<Chat> mockChats = List.of(createMockChat(1L, "Test Chat"));
+        List<ChatResponse> mockResponses = List.of(
+                ChatResponse.builder().id(1L).title("Test Chat").build()
+        );
+
         when(chatRepository.findByUserIdAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(USER_ID, search))
                 .thenReturn(mockChats);
+        when(entityMapper.toChatResponseList(mockChats)).thenReturn(mockResponses);
 
         // Act
-        List<Chat> result = chatService.getUserChats(USER_ID, search, null);
+        ChatsListResponse result = chatService.getUserChats(USER_ID, search, null);
 
         // Assert
-        assertEquals(1, result.size());
+        assertNotNull(result);
+        assertEquals(1, result.getChats().size());
+        assertEquals("Test Chat", result.getChats().get(0).getTitle());
+
         verify(chatRepository, times(1))
                 .findByUserIdAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(USER_ID, search);
+        verify(entityMapper, times(1)).toChatResponseList(mockChats);
     }
 
     @Test
@@ -134,16 +164,29 @@ public class ChatServiceImplTest {
         // Arrange
         String subject = "MATH";
         List<Chat> mockChats = List.of(createMockChat(1L, "Math Chat"));
+        List<ChatResponse> mockResponses = List.of(
+                ChatResponse.builder()
+                        .id(1L)
+                        .title("Math Chat")
+                        .subject(subject)
+                        .build()
+        );
+
         when(chatRepository.findByUserIdAndSubjectOrderByUpdatedAtDesc(USER_ID, subject))
                 .thenReturn(mockChats);
+        when(entityMapper.toChatResponseList(mockChats)).thenReturn(mockResponses);
 
         // Act
-        List<Chat> result = chatService.getUserChats(USER_ID, null, subject);
+        ChatsListResponse result = chatService.getUserChats(USER_ID, null, subject);
 
         // Assert
-        assertEquals(1, result.size());
+        assertNotNull(result);
+        assertEquals(1, result.getChats().size());
+        assertEquals("MATH", result.getChats().get(0).getSubject());
+
         verify(chatRepository, times(1))
                 .findByUserIdAndSubjectOrderByUpdatedAtDesc(USER_ID, subject);
+        verify(entityMapper, times(1)).toChatResponseList(mockChats);
     }
 
     @Test
@@ -167,7 +210,7 @@ public class ChatServiceImplTest {
         when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        ChatNotFoundException exception = assertThrows(ChatNotFoundException.class,
                 () -> chatService.deleteChat(CHAT_ID, USER_ID)
         );
         assertEquals("Chat not found", exception.getMessage());
@@ -196,16 +239,26 @@ public class ChatServiceImplTest {
                 createMockMessage(1L, "Hello"),
                 createMockMessage(2L, "World")
         );
+        List<ChatMessageResponse> mockResponses = List.of(
+                ChatMessageResponse.builder().id(1L).content("Hello").build(),
+                ChatMessageResponse.builder().id(2L).content("World").build()
+        );
 
         when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.of(chat));
         when(messageRepository.findByChatIdOrderByCreatedAtAsc(CHAT_ID)).thenReturn(messages);
+        when(entityMapper.toChatMessageResponseList(messages)).thenReturn(mockResponses);
 
         // Act
-        List<ChatMessage> result = chatService.getChatMessages(CHAT_ID, USER_ID);
+        ChatMessagesListResponse result = chatService.getChatMessages(CHAT_ID, USER_ID);
 
         // Assert
-        assertEquals(2, result.size());
+        assertNotNull(result);
+        assertEquals(2, result.getMessages().size());
+        assertEquals("Hello", result.getMessages().get(0).getContent());
+        assertEquals("World", result.getMessages().get(1).getContent());
+
         verify(messageRepository, times(1)).findByChatIdOrderByCreatedAtAsc(CHAT_ID);
+        verify(entityMapper, times(1)).toChatMessageResponseList(messages);
     }
 
     @Test
@@ -347,13 +400,23 @@ public class ChatServiceImplTest {
                 createMockChat(2L, "Chat 2"),
                 createMockChat(3L, "Chat 3")
         );
+        List<Chat> limitedChats = allChats.subList(0, 2);
+        List<ChatResponse> limitedResponses = List.of(
+                ChatResponse.builder().id(1L).title("Chat 1").build(),
+                ChatResponse.builder().id(2L).title("Chat 2").build()
+        );
+
         when(chatRepository.findByUserIdOrderByUpdatedAtDesc(USER_ID)).thenReturn(allChats);
+        when(entityMapper.toChatResponseList(limitedChats)).thenReturn(limitedResponses);
 
         // Act
-        List<Chat> result = chatService.getRecentChats(USER_ID, 2);
+        ChatsListResponse result = chatService.getRecentChats(USER_ID, 2);
 
         // Assert
-        assertEquals(2, result.size());
+        assertNotNull(result);
+        assertEquals(2, result.getChats().size());
+
+        verify(chatRepository, times(1)).findByUserIdOrderByUpdatedAtDesc(USER_ID);
     }
 
     @Test
@@ -375,6 +438,7 @@ public class ChatServiceImplTest {
         chat.setId(id);
         chat.setUserId(USER_ID);
         chat.setTitle(title);
+        chat.setSubject("MATH");
         chat.setCreatedAt(LocalDateTime.now());
         chat.setUpdatedAt(LocalDateTime.now());
         return chat;
