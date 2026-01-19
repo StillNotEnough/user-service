@@ -9,6 +9,16 @@ spring:
     baseline-on-migrate: true  # Если БД уже существует
     locations: classpath:db/migration
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 60s
+
   # Database configuration
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -64,6 +74,8 @@ logging:
     com.amazingshop: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.cache: TRACE
+    org.springframework.data.redis.cache: TRACE
   file:
     name: logs/app.log
   pattern:
