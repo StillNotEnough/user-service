@@ -3,7 +3,7 @@ package com.amazingshop.personal.userservice.services;
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.TokenPairResponse;
 import com.amazingshop.personal.userservice.enums.Role;
-import com.amazingshop.personal.userservice.interfaces.ConverterService;
+import com.amazingshop.personal.userservice.interfaces.EntityMapper;
 import com.amazingshop.personal.userservice.interfaces.RegistrationService;
 import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
@@ -25,16 +25,16 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final UserValidator userValidator;
-    private final ConverterService converterService;
+    private final EntityMapper entityMapper;
     private final JwtUtil jwtUtil;
 
     @Autowired
     public RegistrationServiceImpl(PasswordEncoder passwordEncoder,
-                                   UserService userService, UserValidator userValidator, ConverterService converterService, JwtUtil jwtUtil) {
+                                   UserService userService, UserValidator userValidator, EntityMapper entityMapper, JwtUtil jwtUtil) {
         this.userService = userService;
         this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
-        this.converterService = converterService;
+        this.entityMapper = entityMapper;
         this.jwtUtil = jwtUtil;
     }
 
@@ -43,7 +43,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     public TokenPairResponse register(UserDTO userDTO) {
         log.info("Registration attempt for username: {}", userDTO.getUsername());
 
-        User user = converterService.convertToUser(userDTO);
+        User user = entityMapper.toUser(userDTO);
         User preparedUser = prepareUserForRegistration(user);
         User savedUser = userService.save(preparedUser);
 

@@ -8,6 +8,9 @@ import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,13 +26,16 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UsersRepository usersRepository;
+    private UserService self;
 
     @Autowired
-    public UserServiceImpl(UsersRepository usersRepository) {
+    public UserServiceImpl(UsersRepository usersRepository, @Lazy UserService self) {
         this.usersRepository = usersRepository;
+        this.self = self;
     }
 
     @Override
+    @Cacheable(value = "userByUsername", key = "#username")
     public Optional<User> findByUsername(String username) {
         log.debug("Searching for user by username: {}", username);
         return usersRepository.findByUsername(username);
@@ -42,6 +48,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "userById", key = "#id")
     public User findUserByIdOrThrow(Long id) {
         return usersRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
@@ -54,6 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userByUsername", key = "#user.username")
     public User save(User user) {
         log.debug("Saving user: {}", user.getUsername());
         return usersRepository.save(user);
@@ -61,6 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userById", key = "#id")
     public void deleteById(Long id) {
         log.info("Deleting user with id: {}", id);
         if (!usersRepository.existsById(id)) {
@@ -73,7 +82,7 @@ public class UserServiceImpl implements UserService {
     public Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        return findByUsername(userDetails.getUsername())
+        return self.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found!"))
                 .getId();
     }
@@ -83,7 +92,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        User user = this.findByUsername(userDetails.getUsername())
+        User user = self.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         // Строим безопасный ответ
@@ -101,11 +110,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public CurrentUserResponse updateCurrentUserResponse(Map<String, String> updates) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        User currentUser = this.findByUsername(userDetails.getUsername())
+        User currentUser = self.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         // Обновляем только разрешенные поля
@@ -117,7 +127,7 @@ public class UserServiceImpl implements UserService {
             currentUser.setProfilePictureUrl(updates.get("profilePictureUrl"));
         }
 
-        User updatedUser = this.save(currentUser);
+        User updatedUser = self.save(currentUser);
 
         return CurrentUserResponse.builder()
                 .id(updatedUser.getId())
