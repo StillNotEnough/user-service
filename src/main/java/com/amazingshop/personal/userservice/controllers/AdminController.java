@@ -3,7 +3,7 @@ package com.amazingshop.personal.userservice.controllers;
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.UserResponse;
 import com.amazingshop.personal.userservice.interfaces.AdminService;
-import com.amazingshop.personal.userservice.interfaces.ConverterService;
+import com.amazingshop.personal.userservice.interfaces.EntityMapper;
 import com.amazingshop.personal.userservice.interfaces.UserService;
 import com.amazingshop.personal.userservice.models.User;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +22,13 @@ public class AdminController {
 
     private final UserService userService;
     private final AdminService adminService;
-    private final ConverterService converterService;
+    private final EntityMapper entityMapper;
 
     @Autowired
-    public AdminController(UserService userService, AdminService adminService, ConverterService converterService) {
+    public AdminController(UserService userService, AdminService adminService, EntityMapper entityMapper) {
         this.userService = userService;
         this.adminService = adminService;
-        this.converterService = converterService;
+        this.entityMapper = entityMapper;
     }
 
     /**
@@ -52,7 +52,7 @@ public class AdminController {
     public ResponseEntity<UserResponse> getAllUsers() {
         List<User> users = userService.findAll();
         List<UserDTO> userDTOS = users.stream()
-                .map(converterService::convertToUserDTO)
+                .map(entityMapper::toUserDTO)
                 .toList();
 
         log.info("All users requested by admin, count: {}", userDTOS.size());
@@ -68,7 +68,7 @@ public class AdminController {
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userService.findUserByIdOrThrow(id);
 
-        UserDTO userDTO = converterService.convertToUserDTO(user);
+        UserDTO userDTO = entityMapper.toUserDTO(user);
         log.info("User {} requested by admin", id);
         return ResponseEntity.ok(userDTO);
     }
@@ -94,7 +94,7 @@ public class AdminController {
     public ResponseEntity<UserDTO> promoteToAdmin(@PathVariable Long id) {
         log.info("Admin requested to promote user with id: {} to admin", id);
         User promotedUser = adminService.promoteToAdmin(id);
-        UserDTO userDTO = converterService.convertToUserDTO(promotedUser);
+        UserDTO userDTO = entityMapper.toUserDTO(promotedUser);
         return ResponseEntity.ok(userDTO);
     }
 }

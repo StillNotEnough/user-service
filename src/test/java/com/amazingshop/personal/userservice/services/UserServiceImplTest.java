@@ -6,6 +6,7 @@ import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.repositories.UsersRepository;
 import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,12 @@ public class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl userService;
+
+    @BeforeEach
+    void setUp() {
+        userService = new UserServiceImpl(usersRepository, null);
+            ReflectionTestUtils.setField(userService, "self", userService);
+    }
 
     @Test
     @DisplayName("findByUsername: должен вернуть пользователя по имени, если он существует")

@@ -129,7 +129,6 @@ class ChatControllerIT {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    // ✅ ДОБАВЛЕН НОВЫЙ ТЕСТ
     @Test
     @DisplayName("DELETE /chats/{id}: должен вернуть 403 при попытке удалить чужой чат")
     void deleteChat_ShouldReturn403_WhenNotOwner() throws Exception {
@@ -195,7 +194,6 @@ class ChatControllerIT {
                 .andExpect(jsonPath("$[1].content").value("Second"));
     }
 
-    // ✅ ДОБАВЛЕН НОВЫЙ ТЕСТ
     @Test
     @DisplayName("GET /chats/{id}/messages: должен вернуть 403 для чужого чата")
     void getChatMessages_ShouldReturn403_WhenNotOwner() throws Exception {
@@ -233,7 +231,6 @@ class ChatControllerIT {
                 .andExpect(jsonPath("$.title").value("New Title"));
     }
 
-    // ✅ ДОБАВЛЕН НОВЫЙ ТЕСТ
     @Test
     @DisplayName("PUT /chats/{id}/title: должен вернуть 403 для чужого чата")
     void updateChatTitle_ShouldReturn403_WhenNotOwner() throws Exception {

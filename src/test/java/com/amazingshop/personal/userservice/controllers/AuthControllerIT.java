@@ -1,7 +1,6 @@
 package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
-import com.amazingshop.personal.userservice.repositories.UsersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;

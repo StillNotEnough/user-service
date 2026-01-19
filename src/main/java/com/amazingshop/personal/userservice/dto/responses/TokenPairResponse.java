@@ -1,7 +1,5 @@
 package com.amazingshop.personal.userservice.dto.responses;
 
-// СОЗДАЙ новый файл: dto/responses/TokenPairResponse.java
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
