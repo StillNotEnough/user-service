@@ -1,3 +1,9 @@
 logging:
   file:
     name: ""   # отключаем файл логирования в k8s
+
+spring:
+    data:
+      redis:
+        host: ${REDIS_HOST:redis}
+        port: ${REDIS_PORT:6379}
