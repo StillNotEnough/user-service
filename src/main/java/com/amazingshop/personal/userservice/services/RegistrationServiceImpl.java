@@ -1,5 +1,6 @@
 package com.amazingshop.personal.userservice.services;
 
+import com.amazingshop.personal.userservice.domain.events.UserRegisteredEvent;
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.TokenPairResponse;
 import com.amazingshop.personal.userservice.enums.Role;
@@ -11,6 +12,7 @@ import com.amazingshop.personal.userservice.security.jwt.JwtUtil;
 import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +29,17 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserValidator userValidator;
     private final EntityMapper entityMapper;
     private final JwtUtil jwtUtil;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     public RegistrationServiceImpl(PasswordEncoder passwordEncoder,
-                                   UserService userService, UserValidator userValidator, EntityMapper entityMapper, JwtUtil jwtUtil) {
+                                   UserService userService, UserValidator userValidator, EntityMapper entityMapper, JwtUtil jwtUtil, ApplicationEventPublisher applicationEventPublisher) {
         this.userService = userService;
         this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
         this.entityMapper = entityMapper;
         this.jwtUtil = jwtUtil;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -46,6 +50,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         User user = entityMapper.toUser(userDTO);
         User preparedUser = prepareUserForRegistration(user);
         User savedUser = userService.save(preparedUser);
+
+        applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser));
 
         TokenPairResponse response = generateTokensAndReturnResponse(savedUser);
         log.info("User registered successfully: {}", savedUser.getUsername());
